@@ -151,3 +151,54 @@ so that I can see which expiry reminders have already been sent to me.
 - Each notification identifies whether it concerned my driving licence or medical certificate.
 - Each notification shows the relevant expiry date.
 - The system displays a limited number of recent notifications to keep the history clear and manageable.
+
+---
+
+### US-11: Disable reminders
+
+As a driver,  
+I want to disable reminders,  
+so that I no longer receive renewal notifications if I do not want them.
+
+**Acceptance Criteria**
+- Given reminders are enabled, when I select **Disable reminders**, then I am asked to confirm the action.
+- Given I confirm, then future reminder notifications are stopped.
+- I can enable reminders again later.
+
+---
+
+### US-12: Receive scheduled reminders
+
+As a driver,  
+I want to receive automatic reminders before my driving licence or medical certificate expires,  
+so that I can renew in time and maintain my right to drive.
+
+**Acceptance Criteria**
+- Given I have enabled reminders, when my next relevant expiry deadline approaches, then the system sends reminders automatically at predefined intervals.
+- The system sends reminders 90 days, 30 days, and 7 days before the relevant expiry date.
+- Each reminder clearly identifies the expiring licence or medical certificate and its expiry date.
+- Each reminder provides a clear recommended action and access to renewal instructions.
+- The system does not send future reminders when the relevant document has been renewed, the expiry date has changed, or reminders have been disabled.
+
+
+---
+
+### US-13: View previous status checks
+
+As a driver,  
+I want to view previous driving-status checks,  
+so that I can understand when my information was updated and whether it changed.
+
+**Acceptance Criteria**
+- Given I open **Previous status checks**, then I can see a chronological list of recent driving-information checks, with the most recent check shown first.
+- Each status-check record displays the date and time of the check.
+- Each status-check record displays the result as `Successful` or `Failed`.
+- Each successful status-check record indicates whether my driving status changed since the previous successful check.
+- Given a check was successful, then the record identifies the Estonian Transport Administration through X-Road as the data source.
+- Given a check was unsuccessful, then the record clearly identifies the check as unsuccessful and shows a simple reason or error message where available.
+- Given a check fails, then the system retains and continues to display the information from the latest successful status check.
+- The latest successful check is clearly identified.
+- The system displays a limited number of recent checks, such as the latest five, to keep the history clear and manageable.
+
+---
+ 
