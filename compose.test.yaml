@@ -1,0 +1,6 @@
+services:
+  postgres:
+    ports: !reset []
+    volumes:
+      - type: tmpfs
+        target: /var/lib/postgresql/data

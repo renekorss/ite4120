@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
+  <changeSet id="001-relational-foundation" author="team">
+    <preConditions onFail="HALT"><dbms type="postgresql"/></preConditions>
+    <sqlFile path="001-schema.sql" relativeToChangelogFile="true" splitStatements="false"/>
+    <rollback><sqlFile path="001-rollback.sql" relativeToChangelogFile="true" splitStatements="false"/></rollback>
+  </changeSet>
+  <changeSet id="002-access-control" author="team">
+    <sqlFile path="002-access.sql" relativeToChangelogFile="true" splitStatements="false"/>
+    <rollback><sqlFile path="002-rollback.sql" relativeToChangelogFile="true" splitStatements="false"/></rollback>
+  </changeSet>
+  <changeSet id="003-data-dictionary" author="team">
+    <sqlFile path="003-metadata.sql" relativeToChangelogFile="true" splitStatements="false"/>
+    <rollback><sqlFile path="003-rollback.sql" relativeToChangelogFile="true" splitStatements="false"/></rollback>
+  </changeSet>
+</databaseChangeLog>

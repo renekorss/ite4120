@@ -1,0 +1,113 @@
+erDiagram
+    user_account ||--o{ web_session : owns
+    user_account ||--o{ status_check : requests
+    status_check ||--o{ driving_licence : caches
+    driving_licence ||--o{ licence_category : contains
+    status_check ||--o{ medical_certificate : caches
+    user_account ||--o| reminder_preference : configures
+    reminder_preference ||--o{ reminder_interval : selects
+    user_account ||--o{ web_push_subscription : registers
+    user_account ||--o{ notification : receives
+    status_check ||--o{ notification : supplies_snapshot
+    driving_licence o|--o{ notification : licence_target
+    medical_certificate o|--o{ notification : medical_target
+    web_push_subscription o|--o{ notification : browser_route
+    notification ||--o{ notification_attempt : attempts
+    user_account o|--o{ audit_event : actor
+    user_account o|--o{ audit_event : subject
+    user_account {
+        uuid id PK
+        varchar identity_issuer UK
+        varchar identity_subject UK
+        timestamptz deleted_at
+    }
+    web_session {
+        uuid id PK
+        uuid user_id FK
+        bytea token_hash UK
+        timestamptz expires_at
+        timestamptz revoked_at
+    }
+    status_check {
+        uuid id PK
+        uuid user_id FK
+        timestamptz requested_at
+        timestamptz completed_at
+        varchar outcome
+        varchar driving_status
+        varchar medical_requirement
+        boolean status_changed
+        varchar reason_code
+        varchar error_code
+        uuid trace_id
+    }
+    driving_licence {
+        uuid id PK
+        uuid check_id FK
+        varchar check_outcome FK
+        varchar document_status
+        date issued_on
+        date expires_on
+    }
+    licence_category {
+        uuid licence_id PK,FK
+        varchar category_code PK
+    }
+    medical_certificate {
+        uuid id PK
+        uuid check_id FK
+        varchar check_outcome FK
+        varchar certificate_status
+        date issued_on
+        date expires_on
+    }
+    reminder_preference {
+        uuid user_id PK,FK
+        boolean enabled
+        timestamptz updated_at
+    }
+    reminder_interval {
+        uuid user_id PK,FK
+        smallint days_before PK
+    }
+    web_push_subscription {
+        uuid id PK
+        uuid user_id FK
+        bytea encrypted_subscription
+        varchar encryption_key_ref
+        timestamptz revoked_at
+    }
+    notification {
+        uuid id PK
+        uuid user_id FK
+        uuid check_id FK
+        uuid licence_id FK
+        uuid medical_certificate_id FK
+        uuid subscription_id FK
+        varchar document_kind
+        date expires_on FK
+        smallint days_before
+        timestamptz scheduled_at
+        varchar state
+        timestamptz sent_at
+        timestamptz claimed_until
+    }
+    notification_attempt {
+        uuid id PK
+        uuid notification_id FK
+        smallint attempt_number
+        varchar outcome
+        timestamptz started_at
+        timestamptz completed_at
+        uuid trace_id
+    }
+    audit_event {
+        uuid id PK
+        uuid actor_user_id FK
+        uuid subject_user_id FK
+        timestamptz occurred_at
+        varchar actor_kind
+        varchar action_code
+        varchar outcome
+        uuid trace_id
+    }
