@@ -67,6 +67,7 @@
 *Corrections:*
 - Removed the trailing newline when copying the database password for TablePlus
 - Added the missing diary entries for the database homework
+- Isolated test database ports from the local TablePlus connection before creating the pull request
 *Evidence:*
 - Setup instructions: `README.md`
 - Operations and test commands: `docs/database-operations.md`

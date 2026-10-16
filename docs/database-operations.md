@@ -1,6 +1,7 @@
 # Database operations and contributor commands
 
-PostgreSQL is reachable only inside the Compose network; no host port is published.
+Local PostgreSQL is reachable at `127.0.0.1:5432` for tools such as TablePlus.
+The isolated test database publishes no host port.
 `init-local.sh` generates an ignored random secret and copies `.env.example` once.
 It never overwrites an existing secret. Compose secrets are file mounts, not a vault.
 The local owner and migrator share this generated secret solely to simplify development;

@@ -55,3 +55,11 @@ TLS and credential separation, vulnerability clearance, and integrity classifica
 Retention periods, X-Road contracts/status mappings, delivery semantics and key management
 need agreement before processing real data. None of those approvals is implied by the
 passing synthetic-data migration tests.
+
+## PR preparation — 2026-10-16
+
+After enabling the local TablePlus port, `compose.test.yaml` now explicitly resets
+host ports so the test database can run alongside the local database. Resolved Compose
+configuration confirmed no test port mapping. The 4 repository checks, 45 database
+assertions before and after rollback/reapplication, migration idempotency, and
+`git diff --check` passed again. Packaging and checksum verification were repeated.
