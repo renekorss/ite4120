@@ -1,0 +1,26 @@
+services:
+  xroad-mock:
+    image: python:3.13-slim-bookworm@sha256:a1165e272e578941b84abc79e4ab38a0305cd12803a5c4247979ac7655f4d641
+    user: '65534:65534'
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment:
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+      MOCK_BIND: 0.0.0.0
+      MOCK_PORT: '8081'
+      MOCK_DELAY_SECONDS: ${MOCK_DELAY_SECONDS:-2}
+      MOCK_XROAD_CLIENT: ${MOCK_XROAD_CLIENT:-ee-test/COM/00000000/licence-reminder-demo}
+      MOCK_XROAD_PATH: ${MOCK_XROAD_PATH:-/r1/ee-test/GOV/70001490/liiklusregister/juhilubaKehtivus/v1}
+    working_dir: /mock
+    command: [python, server.py]
+    volumes:
+      - ./mocks/xroad:/mock:ro
+    ports:
+      - '127.0.0.1:${MOCK_HOST_PORT:-18081}:8081'
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8081/health', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 10

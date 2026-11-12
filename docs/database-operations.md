@@ -57,7 +57,7 @@ an authorised SQL operation and update the mounted secret together.
 
 There are no committed connection credentials, personal data, environment-specific
 external addresses or runtime login passwords. No package-manager dependencies or
-lockfile are needed; the two container images are pinned by immutable digest.
+lockfile are needed; the container images are pinned by immutable digest.
 PostgreSQL uses its PostgreSQL licence; Liquibase 4.33.0 Community uses Apache-2.0
 and includes the JDBC driver. Liquibase 5 changes licensing and driver packaging;
 review a future upgrade explicitly. Scout inventories transitive OS/JVM/JDBC packages
@@ -98,3 +98,17 @@ For populated environments, prefer a forward corrective migration or restore a
 verified backup under the deployment owner's procedure. Never clear checksums or
 force-release a lock unless an authorised operator has verified that no migration
 is running. No production backup schedule, deletion job or reminder worker is installed.
+
+## Optional demo data
+
+Run `./scripts/seed-demo.sh` after migrations to load synthetic driving scenarios into
+the local database for TablePlus and API development. See [scenario details and X-Road
+limitations](demo-data.md). Repeated loading preserves existing records. Fixtures are
+not Liquibase changesets and are not loaded on application startup.
+
+## Local upstream HTTP mock
+
+For a request/response mock of the published licence service, see
+[X-Road mock commands and contract](xroad-mock.md). It runs independently of the
+optional SQL demo dataset and does not write to PostgreSQL. Image scans and SBOM
+commands inventory the optional Python mock image as well as PostgreSQL/Liquibase.

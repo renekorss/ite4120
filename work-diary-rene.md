@@ -64,6 +64,9 @@
 - Shortened the README to local setup, startup, database access and shutdown instructions
 - Moved detailed operational and testing instructions into a separate document
 - Exposed PostgreSQL on localhost and successfully connected through TablePlus
+- Investigated X-Road Playground services and their limitations for driving-licence data
+- Located the public ee-test juhilubaKehtivus OpenAPI contract and implemented a local HTTP mock with contract-shaped responses and failure scenarios
+- Added clearly marked synthetic driving scenarios, reminders and history for local database exploration
 *Corrections:*
 - Removed the trailing newline when copying the database password for TablePlus
 - Added the missing diary entries for the database homework
@@ -73,3 +76,16 @@
 - Operations and test commands: `docs/database-operations.md`
 - Local database port mapping: `compose.yaml`
 - TablePlus connection confirmed working
+- Synthetic fixture data and provenance: `database/fixtures/demo.sql`, `docs/demo-data.md`
+- HTTP mock contract, usage and tests: `mocks/xroad/`, `compose.mock.yaml`, `docs/xroad-mock.md`
+
+## 2026-11-12
+*Hours:* Not recorded
+*Work*
+- Reviewed the HTTP mock against the public X-tee test contract and confirmed the source checksum was unchanged
+- Added an importable Postman collection with ten synthetic request scenarios and response assertions
+*Corrections:*
+- Clarified that the collection covers the upstream mock rather than the future frontend-facing API
+*Evidence:*
+- Postman collection: `mocks/xroad/postman/xroad-mock.postman_collection.json`
+- Import instructions: `docs/xroad-mock.md`

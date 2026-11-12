@@ -8,7 +8,7 @@ from pathlib import Path
 import tarfile
 
 roots = ["README.md", "AGENTS.md", "user-stories.md", ".env.example",
-         "compose.yaml", "compose.test.yaml", "database", "scripts", "docs"]
+         "compose.yaml", "compose.test.yaml", "compose.mock.yaml", "database", "scripts", "docs", "mocks"]
 files = []
 for name in roots:
     path = Path(name)

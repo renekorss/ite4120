@@ -356,6 +356,15 @@ the grants they need (a dedicated worker role can narrow runtime further).
 
 ## Decisions awaiting contracts or approval
 
+A public ee-test `juhilubaKehtivus` v1 OpenAPI snapshot has now been located and
+used for the separate [upstream HTTP mock](xroad-mock.md). This supplies a concrete
+licence response shape for development; it is not the approved production contract.
+It exposes category-specific dates and a driving-right end date, omits licence details
+when invalid, and supplies no medical-certificate expiry. Agree source selection and
+minimal persistence mappings before implementing the real adapter; add migrations
+for newly required source fields rather than treating existing local cache fields as
+identical to upstream JSON.
+
 | Decision / owner | Consequence and planned resolution |
 | --- | --- |
 | X-Road service owner, approved security-server path, member/service/version identifiers / integration owner | Fixed logical source key is not an invented API endpoint. Obtain authentic test contract and provider provenance; medical data may have a distinct authority, requiring a source/provenance migration |

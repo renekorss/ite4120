@@ -1,0 +1,185 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Juhiloa kehtivuse teenus",
+    "version": "v1"
+  },
+  "servers": [
+    {
+      "url": "/rest/v1/xroad/juhiluba/kehtivus"
+    }
+  ],
+  "paths": {
+    "/v1": {
+      "post": {
+        "operationId": "juhilubaKehtivus",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JuhilubaKehtivusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JuhilubaKehtivusResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "JuhilubaKehtivusRequest": {
+        "type": "object",
+        "properties": {
+          "isikukood": {
+            "type": "string"
+          },
+          "eesnimi": {
+            "type": "string"
+          },
+          "perenimi": {
+            "type": "string"
+          },
+          "loaNr": {
+            "type": "string"
+          }
+        }
+      },
+      "JuhilubaKehtivusResponse": {
+        "type": "object",
+        "properties": {
+          "eesnimi": {
+            "type": "string"
+          },
+          "perenimi": {
+            "type": "string"
+          },
+          "isikukood": {
+            "type": "string"
+          },
+          "loaNr": {
+            "type": "string"
+          },
+          "loaTyyp": {
+            "type": "string",
+            "enum": [
+              "JUHILUBA",
+              "ESMANE"
+            ]
+          },
+          "valjastamisKp": {
+            "type": "string"
+          },
+          "juhtimisOiguseLoppKp": {
+            "type": "string"
+          },
+          "kategooriad": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Kategooria"
+            }
+          },
+          "staatus": {
+            "type": "string",
+            "enum": [
+              "kehtiv",
+              "kehtetu"
+            ]
+          },
+          "pohjuseKood": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "JUHILUBA_EI_OLE_KEHTIV",
+              "KEHTIVAT_JUHILUBA_EI_LEITUD",
+              "JUHTIMISOIGUS_EI_OLE_KEHTIV"
+            ]
+          },
+          "sonum": {
+            "type": "string",
+            "nullable": true
+          },
+          "kood95ValjastamiseKp": {
+            "type": "string",
+            "nullable": true
+          },
+          "kood95KehtivuseLoppKp": {
+            "type": "string",
+            "nullable": true
+          },
+          "kood95Staatus": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "kehtiv",
+              "kehtetu"
+            ]
+          }
+        }
+      },
+      "Kategooria": {
+        "type": "object",
+        "properties": {
+          "kood": {
+            "type": "string"
+          },
+          "esmakordseValjastamiseKp": {
+            "type": "string"
+          },
+          "kehtivusKp": {
+            "type": "string"
+          }
+        }
+      },
+      "ErrorResult": {
+        "type": "object",
+        "properties": {
+          "errorMessage": {
+            "type": "string"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,537 @@
+{
+  "info": {
+    "name": "Driving Licence Reminder — X-Road Mock",
+    "description": "Local upstream licence-service mock only. All identities are synthetic. This does not describe the future frontend-facing API. Start the service using compose.mock.yaml. A separate Postman environment is not required.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:18081",
+      "type": "string"
+    },
+    {
+      "key": "servicePath",
+      "value": "/r1/ee-test/GOV/70001490/liiklusregister/juhilubaKehtivus/v1",
+      "type": "string"
+    },
+    {
+      "key": "xRoadClient",
+      "value": "ee-test/COM/00000000/licence-reminder-demo",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Valid licence",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Road-Client",
+            "value": "{{xRoadClient}}"
+          },
+          {
+            "key": "X-Road-Id",
+            "value": "{{$guid}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isikukood\": \"00000000001\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}{{servicePath}}",
+        "description": "Synthetic local scenario. Expected HTTP 200. No real X-Road request or database write."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Response is marked as mock\", function () {",
+              "  pm.expect(pm.response.headers.get(\"X-Mock-Service\")).to.eql(\"true\");",
+              "});",
+              "pm.test(\"Expected scenario result\", function () {",
+              "  pm.expect(pm.response.json()[\"staatus\"]).to.eql(\"kehtiv\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "Licence expiring in 30 days",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Road-Client",
+            "value": "{{xRoadClient}}"
+          },
+          {
+            "key": "X-Road-Id",
+            "value": "{{$guid}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isikukood\": \"00000000002\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}{{servicePath}}",
+        "description": "Synthetic local scenario. Expected HTTP 200. No real X-Road request or database write."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Response is marked as mock\", function () {",
+              "  pm.expect(pm.response.headers.get(\"X-Mock-Service\")).to.eql(\"true\");",
+              "});",
+              "pm.test(\"Expected scenario result\", function () {",
+              "  pm.expect(pm.response.json()[\"staatus\"]).to.eql(\"kehtiv\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "Expired licence",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Road-Client",
+            "value": "{{xRoadClient}}"
+          },
+          {
+            "key": "X-Road-Id",
+            "value": "{{$guid}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isikukood\": \"00000000003\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}{{servicePath}}",
+        "description": "Synthetic local scenario. Expected HTTP 200. No real X-Road request or database write."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Response is marked as mock\", function () {",
+              "  pm.expect(pm.response.headers.get(\"X-Mock-Service\")).to.eql(\"true\");",
+              "});",
+              "pm.test(\"Expected scenario result\", function () {",
+              "  pm.expect(pm.response.json()[\"pohjuseKood\"]).to.eql(\"KEHTIVAT_JUHILUBA_EI_LEITUD\");",
+              "});",
+              "pm.test(\"Invalid status omits licence details\", function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.staatus).to.eql(\"kehtetu\");",
+              "  pm.expect(body).not.to.have.property(\"kategooriad\");",
+              "  pm.expect(body).not.to.have.property(\"juhtimisOiguseLoppKp\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "Invalid driving right",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Road-Client",
+            "value": "{{xRoadClient}}"
+          },
+          {
+            "key": "X-Road-Id",
+            "value": "{{$guid}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isikukood\": \"00000000004\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}{{servicePath}}",
+        "description": "Synthetic local scenario. Expected HTTP 200. No real X-Road request or database write."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Response is marked as mock\", function () {",
+              "  pm.expect(pm.response.headers.get(\"X-Mock-Service\")).to.eql(\"true\");",
+              "});",
+              "pm.test(\"Expected scenario result\", function () {",
+              "  pm.expect(pm.response.json()[\"pohjuseKood\"]).to.eql(\"JUHTIMISOIGUS_EI_OLE_KEHTIV\");",
+              "});",
+              "pm.test(\"Invalid status omits licence details\", function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.staatus).to.eql(\"kehtetu\");",
+              "  pm.expect(body).not.to.have.property(\"kategooriad\");",
+              "  pm.expect(body).not.to.have.property(\"juhtimisOiguseLoppKp\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "Service unavailable",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Road-Client",
+            "value": "{{xRoadClient}}"
+          },
+          {
+            "key": "X-Road-Id",
+            "value": "{{$guid}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isikukood\": \"00000000005\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}{{servicePath}}",
+        "description": "Synthetic local scenario. Expected HTTP 503. No real X-Road request or database write."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 503\", function () { pm.response.to.have.status(503); });",
+              "pm.test(\"Response is marked as mock\", function () {",
+              "  pm.expect(pm.response.headers.get(\"X-Mock-Service\")).to.eql(\"true\");",
+              "});",
+              "pm.test(\"Expected scenario result\", function () {",
+              "  pm.expect(pm.response.json()[\"errorCode\"]).to.eql(\"MOCK_UNAVAILABLE\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "Slow response",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Road-Client",
+            "value": "{{xRoadClient}}"
+          },
+          {
+            "key": "X-Road-Id",
+            "value": "{{$guid}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isikukood\": \"00000000006\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}{{servicePath}}",
+        "description": "Synthetic local scenario. Expected HTTP 200. No real X-Road request or database write."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Response is marked as mock\", function () {",
+              "  pm.expect(pm.response.headers.get(\"X-Mock-Service\")).to.eql(\"true\");",
+              "});",
+              "pm.test(\"Expected scenario result\", function () {",
+              "  pm.expect(pm.response.json()[\"staatus\"]).to.eql(\"kehtiv\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "Person not found",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Road-Client",
+            "value": "{{xRoadClient}}"
+          },
+          {
+            "key": "X-Road-Id",
+            "value": "{{$guid}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isikukood\": \"00000000999\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}{{servicePath}}",
+        "description": "Synthetic local scenario. Expected HTTP 404. No real X-Road request or database write."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 404\", function () { pm.response.to.have.status(404); });",
+              "pm.test(\"Response is marked as mock\", function () {",
+              "  pm.expect(pm.response.headers.get(\"X-Mock-Service\")).to.eql(\"true\");",
+              "});",
+              "pm.test(\"Expected scenario result\", function () {",
+              "  pm.expect(pm.response.json()[\"errorCode\"]).to.eql(\"2\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "Missing required input",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Road-Client",
+            "value": "{{xRoadClient}}"
+          },
+          {
+            "key": "X-Road-Id",
+            "value": "{{$guid}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}{{servicePath}}",
+        "description": "Synthetic local scenario. Expected HTTP 400. No real X-Road request or database write."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });",
+              "pm.test(\"Response is marked as mock\", function () {",
+              "  pm.expect(pm.response.headers.get(\"X-Mock-Service\")).to.eql(\"true\");",
+              "});",
+              "pm.test(\"Expected scenario result\", function () {",
+              "  pm.expect(pm.response.json()[\"errorCode\"]).to.eql(\"1\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "Name and licence number lookup",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Road-Client",
+            "value": "{{xRoadClient}}"
+          },
+          {
+            "key": "X-Road-Id",
+            "value": "{{$guid}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"eesnimi\": \"Test\",\n  \"perenimi\": \"Demo\",\n  \"loaNr\": \"MOCK0001\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}{{servicePath}}",
+        "description": "Synthetic local scenario. Expected HTTP 200. No real X-Road request or database write."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Response is marked as mock\", function () {",
+              "  pm.expect(pm.response.headers.get(\"X-Mock-Service\")).to.eql(\"true\");",
+              "});",
+              "pm.test(\"Expected scenario result\", function () {",
+              "  pm.expect(pm.response.json()[\"staatus\"]).to.eql(\"kehtiv\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "Expired licence with supplied number",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Road-Client",
+            "value": "{{xRoadClient}}"
+          },
+          {
+            "key": "X-Road-Id",
+            "value": "{{$guid}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isikukood\": \"00000000003\",\n  \"loaNr\": \"MOCK0003\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}{{servicePath}}",
+        "description": "Synthetic local scenario. Expected HTTP 200. No real X-Road request or database write."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Response is marked as mock\", function () {",
+              "  pm.expect(pm.response.headers.get(\"X-Mock-Service\")).to.eql(\"true\");",
+              "});",
+              "pm.test(\"Expected scenario result\", function () {",
+              "  pm.expect(pm.response.json()[\"pohjuseKood\"]).to.eql(\"JUHILUBA_EI_OLE_KEHTIV\");",
+              "});",
+              "pm.test(\"Invalid status omits licence details\", function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.staatus).to.eql(\"kehtetu\");",
+              "  pm.expect(body).not.to.have.property(\"kategooriad\");",
+              "  pm.expect(body).not.to.have.property(\"juhtimisOiguseLoppKp\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "response": []
+    }
+  ]
+}

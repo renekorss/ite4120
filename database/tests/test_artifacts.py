@@ -34,8 +34,8 @@ class ArtifactTests(unittest.TestCase):
                 subprocess.run(["sh", "-n", str(path)], check=True)
 
     def test_text_hygiene(self):
-        paths = [ROOT / "README.md", ROOT / "compose.yaml", ROOT / ".env.example"]
-        for directory in ("database", "scripts", "docs"):
+        paths = [ROOT / "README.md", ROOT / "compose.yaml", ROOT / "compose.mock.yaml", ROOT / ".env.example"]
+        for directory in ("database", "scripts", "docs", "mocks"):
             paths.extend(p for p in (ROOT / directory).rglob("*")
                          if p.is_file() and "__pycache__" not in p.parts)
         for path in paths:

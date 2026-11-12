@@ -63,3 +63,28 @@ host ports so the test database can run alongside the local database. Resolved C
 configuration confirmed no test port mapping. The 4 repository checks, 45 database
 assertions before and after rollback/reapplication, migration idempotency, and
 `git diff --check` passed again. Packaging and checksum verification were repeated.
+
+## Synthetic demo data — 2026-10-16
+
+Added optional fixtures for seven driving scenarios, documented in `docs/demo-data.md`.
+`./scripts/test-database.sh` passed the existing migration/rollback assertions and
+12 demo assertions after both initial fixture loading and repeat loading. The repeat
+load skipped insertion as intended. The 4 repository checks, `git diff --check`, source
+packaging and checksum verification passed. `./scripts/seed-demo.sh` loaded the fixtures
+into the local database; the same 12 demo assertions passed there. No schema migration,
+real registry call, usable authentication secret or actual notification delivery was added.
+
+## Upstream HTTP mock — 2026-10-16
+
+The public ee-test `juhilubaKehtivus` v1 contract was retrieved and a structural
+snapshot with source checksum recorded under `mocks/xroad/contracts/`. The optional
+mock is independent of SQL fixture rows. All 15 contract/HTTP checks passed in the
+pinned Python container, including injected timeout recovery; 4 repository checks
+and whitespace checks passed. The initial host HTTP checks were blocked by sandbox
+socket permissions, so the full suite ran successfully in Docker. The mock's Compose
+configuration validated, its health check passed, and the documented curl request
+returned synthetic JSON on localhost port 18081. Port 8081 was occupied by another
+project and was left unchanged. SPDX generation including Python succeeded;
+Docker Scout vulnerability scanning still requires authentication. Source packaging
+and SHA-256 verification passed. No real X-Road request or database migration occurred.
+See `docs/xroad-mock.md` for contract limitations and canonical run/test commands.
