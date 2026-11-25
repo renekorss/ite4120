@@ -9,6 +9,9 @@ from uuid import UUID, uuid4
 
 DEFAULT_PATH = "/r1/ee-test/GOV/70001490/liiklusregister/juhilubaKehtivus/v1"
 DEFAULT_CLIENT = "ee-test/COM/00000000/licence-reminder-demo"
+MEDICAL_PATH = "/demo/v1/medical-certificate"
+MEDICAL_DAYS = {"valid": 365, "expiring": 365, "expired": 365, "invalid": -5,
+                "slow": 365, "medical": 30, "both": 7, "renewed": 365}
 MAX_BODY_BYTES = 4096
 SCENARIOS = {
     "00000000001": ("valid", 730),
@@ -82,6 +85,7 @@ class MockServer(ThreadingHTTPServer):
     daemon_threads = True
 
     def __init__(self, address, path=DEFAULT_PATH, client=DEFAULT_CLIENT, delay=2.0):
+        self.medical_reference_date = date.fromisoformat(os.environ.get("MOCK_MEDICAL_REFERENCE_DATE") or datetime.now(timezone.utc).date().isoformat())
         self.mock_path = path
         self.mock_client = client
         self.mock_delay = delay
@@ -110,7 +114,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.send_header("X-Road-Id", trace)
         self.send_header("X-Road-Client", self.server.mock_client)
-        self.send_header("X-Road-Service", self.server.mock_path.removeprefix("/r1/").rsplit("/", 1)[0])
+        if self.path == self.server.mock_path:
+            self.send_header("X-Road-Service", self.server.mock_path.removeprefix("/r1/").rsplit("/", 1)[0])
         self.send_header("X-Road-Request-Id", str(uuid4()))
         self.send_header("X-Mock-Service", "true")
         self.end_headers()
@@ -133,7 +138,7 @@ class Handler(BaseHTTPRequestHandler):
             self.trace = str(UUID(self.headers.get("X-Road-Id", "")))
         except ValueError:
             self.trace = str(uuid4())
-        if self.path != self.server.mock_path:
+        if self.path not in (self.server.mock_path, MEDICAL_PATH):
             self.send_json(404, error("MOCK_ROUTE", "Testteenuse aadressi ei leitud."))
             return
         if self.headers.get("X-Road-Client") != self.server.mock_client:
@@ -150,6 +155,17 @@ class Handler(BaseHTTPRequestHandler):
             payload = json.loads(self.rfile.read(length))
         except (ValueError, UnicodeError, TimeoutError):
             self.send_json(400, error("1", "Päringu JSON-sisu on vigane."))
+            return
+        if self.path == MEDICAL_PATH:
+            if not isinstance(payload, dict) or set(payload) != {"scenario"} or not isinstance(payload["scenario"], str):
+                self.send_json(400, error("1", "Invalid demo scenario."))
+                return
+            days = MEDICAL_DAYS.get(payload["scenario"])
+            if days is None:
+                self.send_json(404, error("2", "Unknown demo scenario."))
+                return
+            expiry = self.server.medical_reference_date + timedelta(days=days)
+            self.send_json(200, {"required": True, "expiresOn": expiry.isoformat()})
             return
         status, body = respond(payload)
         if status == 200 and isinstance(payload, dict) and payload.get("isikukood") == "00000000006":

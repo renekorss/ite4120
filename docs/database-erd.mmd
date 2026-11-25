@@ -1,5 +1,6 @@
 erDiagram
     user_account ||--o{ web_session : owns
+    user_account ||--o| password_credential : authenticates
     user_account ||--o{ status_check : requests
     status_check ||--o{ driving_licence : caches
     driving_licence ||--o{ licence_category : contains
@@ -12,6 +13,7 @@ erDiagram
     driving_licence o|--o{ notification : licence_target
     medical_certificate o|--o{ notification : medical_target
     web_push_subscription o|--o{ notification : browser_route
+    licence_category o|--o{ notification : category_deadline
     notification ||--o{ notification_attempt : attempts
     user_account o|--o{ audit_event : actor
     user_account o|--o{ audit_event : subject
@@ -46,12 +48,15 @@ erDiagram
         uuid check_id FK
         varchar check_outcome FK
         varchar document_status
+        varchar expiry_kind
         date issued_on
         date expires_on
     }
     licence_category {
         uuid licence_id PK,FK
         varchar category_code PK
+        date first_issued_on
+        date expires_on
     }
     medical_certificate {
         uuid id PK
@@ -75,6 +80,7 @@ erDiagram
         uuid user_id FK
         bytea encrypted_subscription
         varchar encryption_key_ref
+        bytea endpoint_hash UK
         timestamptz revoked_at
     }
     notification {
@@ -85,6 +91,8 @@ erDiagram
         uuid medical_certificate_id FK
         uuid subscription_id FK
         varchar document_kind
+        varchar category_code FK
+        date document_expires_on FK
         date expires_on FK
         smallint days_before
         timestamptz scheduled_at
@@ -110,4 +118,18 @@ erDiagram
         varchar action_code
         varchar outcome
         uuid trace_id
+    }
+    password_credential {
+        uuid user_id PK,FK
+        varchar username UK
+        varchar password_hash
+        varchar display_name
+        boolean is_enabled
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    login_throttle {
+        bytea bucket_hash PK
+        smallint attempts
+        timestamptz expires_at
     }

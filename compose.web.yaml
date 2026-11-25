@@ -1,0 +1,38 @@
+# Local demo overlay. The API-only deployment retains its password-only defaults.
+x-web-environment: &web_environment
+  MOCK_MEDICAL_PATH: /demo/v1/medical-certificate
+  DEMO_CODE_LOGIN: '1'
+  VAPID_KEY_FILE: /run/secrets/vapid_key
+  VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:demo@example.test}
+  PUSH_ALLOWED_HOSTS: ${WEB_PUSH_HOSTS:-fcm.googleapis.com,updates.push.services.mozilla.com,web.push.apple.com}
+services:
+  xroad-mock:
+    environment:
+      MOCK_MEDICAL_REFERENCE_DATE: ${MOCK_MEDICAL_REFERENCE_DATE:-}
+  api:
+    environment: *web_environment
+    secrets: [vapid_key]
+  worker:
+    extends:
+      file: compose.api.yaml
+      service: api-seed
+    profiles: !reset []
+    volumes: !reset []
+    environment:
+      <<: *web_environment
+      DB_USER: reminder_api
+      DB_PASSWORD_FILE: /run/secrets/api_password
+      REMINDER_POLL_SECONDS: ${REMINDER_POLL_SECONDS:-30}
+      REMINDER_RETRY_SECONDS: ${REMINDER_RETRY_SECONDS:-300}
+    secrets: !override [api_password, push_key, auth_key, vapid_key]
+    depends_on:
+      api:
+        condition: service_healthy
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    command: [python, -m, licence_api.delivery]
+secrets:
+  vapid_key:
+    file: ./.secrets/vapid.pem

@@ -164,3 +164,21 @@ HTTP tests could not bind sockets under the sandbox; the Docker run passed all t
 These tests validate the implemented fixture subset; they do not claim full upstream
 business-rule or X-Road security-protocol conformance. No database migration or app
 backend/frontend implementation is included.
+
+### Supplemental medical registry for the browser demo
+
+The local web overlay also reads `POST /demo/v1/medical-certificate` on the mock
+host. This project-owned v1 fixture takes a single allowlisted synthetic
+`scenario` string and returns `required` and an ISO calendar `expiresOn`.
+The licence lookup continues to use the published X-Road licence contract.
+The supplemental route uses the mock's configured client header, request size limit,
+correlation ID, timeout and safe error handling. It does not log request bodies.
+The API sends both read-only queries during an explicit refresh and commits one
+successful snapshot only after validating both responses. A failed lookup records
+a failed check and retains the previous successful data. No automatic retry occurs.
+
+The deployment operator owns `MOCK_MEDICAL_PATH` (empty for the standalone API,
+`/demo/v1/medical-certificate` for the web stack) and `MOCK_MEDICAL_REFERENCE_DATE`
+(UTC date in YYYY-MM-DD format). Local initialization records the date in .env
+once, so refreshing or restarting does not silently renew a certificate. Recreate
+the mock/API after configuration changes. Code 07 expires 30 days after that reference date.

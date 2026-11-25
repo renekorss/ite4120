@@ -8,7 +8,8 @@ from pathlib import Path
 import tarfile
 
 roots = ["README.md", "AGENTS.md", "user-stories.md", ".env.example",
-         "compose.yaml", "compose.test.yaml", "compose.mock.yaml", "database", "scripts", "docs", "mocks"]
+         "compose.yaml", "compose.test.yaml", "compose.mock.yaml", "compose.api.yaml",
+         "compose.api-test.yaml", "compose.web.yaml", "database", "scripts", "docs", "mocks", "api", "postman", "frontend"]
 files = []
 for name in roots:
     path = Path(name)
@@ -17,7 +18,9 @@ with Path("artifacts/database-foundation.tar.gz").open("wb") as output:
     with gzip.GzipFile(filename="", mode="wb", fileobj=output, mtime=0) as compressed:
         with tarfile.open(fileobj=compressed, mode="w") as archive:
             for path in sorted(files):
-                if "__pycache__" in path.parts or path.suffix == ".pyc":
+                if any(part in {"__pycache__", ".venv", ".pytest_cache", ".ruff_cache", "node_modules", "dist",
+                                 "test-results", "playwright-report"}
+                       for part in path.parts) or path.suffix == ".pyc" or path.name in {".coverage", ".DS_Store"}:
                     continue
                 info = archive.gettarinfo(str(path))
                 info.mtime = info.uid = info.gid = 0

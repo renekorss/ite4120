@@ -9,6 +9,14 @@ The source documents remain authoritative. If a project decision conflicts with 
 - [Automated-testing requirements (PDF)](https://s3-web-1a.tehik.ee/tehik-live-web-prd/s3fs-public/2021-01/AV-72518077-280920-1256-30.pdf)
 - [Non-functional requirements, v2.4 (PDF)](https://s3-web-1a.tehik.ee/tehik-live-web-prd/s3fs-public/2026-07/mittefunktsionaalsed-nouded.pdf)
 
+## Working on the driving licence reminder
+
+- Start the full local stack from the repository root with `./scripts/start-web.sh`. The [README](README.md) covers prerequisites, login, ports and shutdown. Keep this as the single startup path for humans and agents.
+- The requested web demo uses English, synthetic allowlisted personal codes for all three sign-in choices, and browser Web Push. The API-only stack has separate authentication defaults. Keep personal codes, subscriptions and credentials out of logs.
+- Read the affected criteria in [user-stories.md](user-stories.md) and their evidence in [the acceptance audit](docs/acceptance.md). Update the mapping when behavior or verification changes. Distinguish local mock results from approved external interface tests.
+- Use [the web guide](docs/web.md#quality-gates-and-traceability) for canonical checks. API and database integration scripts use disposable Compose projects. The browser suite runs against the seeded demo. Preserve shared demo preferences and history.
+- For design comparisons, reuse the local Figma cache under `artifacts/figma/` when present. Request only missing frames.
+
 ## Before changing code or configuration
 
 1. Read the relevant user story and acceptance criteria. Preserve the intended behaviour; do not invent product decisions.

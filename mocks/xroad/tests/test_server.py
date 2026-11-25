@@ -153,6 +153,16 @@ class HttpTests(unittest.TestCase):
         self.assertEqual(self.request(headers={"Content-Type": "text/plain", "X-Road-Client": DEFAULT_CLIENT})[0], 415)
         self.assertEqual(self.request(path="/unknown")[0], 404)
 
+    def test_medical_registry_is_independent_and_repeatable(self):
+        path = "/demo/v1/medical-certificate"
+        status, headers, result = self.request(path=path, body=b'{"scenario":"medical"}')
+        self.assertEqual(status, 200)
+        self.assertNotIn("X-Road-Service", headers)
+        self.assertIs(result["required"], True)
+        self.assertEqual(self.request(path=path, body=b'{"scenario":"medical"}')[2], result)
+        self.assertEqual(self.request(path=path, body=b'{"scenario":"absent"}')[0], 404)
+        self.assertEqual(self.request(path=path, body=b'{}')[0], 400)
+
     def test_unavailability(self):
         self.assertEqual(self.request(body=b'{"isikukood":"00000000005"}')[0], 503)
 

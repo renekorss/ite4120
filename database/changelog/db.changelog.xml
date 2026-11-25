@@ -15,4 +15,16 @@
     <sqlFile path="003-metadata.sql" relativeToChangelogFile="true" splitStatements="false"/>
     <rollback><sqlFile path="003-rollback.sql" relativeToChangelogFile="true" splitStatements="false"/></rollback>
   </changeSet>
+  <changeSet id="004-frontend-api-source-fields" author="team">
+    <sqlFile path="004-api.sql" relativeToChangelogFile="true" splitStatements="false"/>
+    <rollback><sqlFile path="004-rollback.sql" relativeToChangelogFile="true" splitStatements="false"/></rollback>
+  </changeSet>
+  <changeSet id="005-verified-password-authentication" author="team">
+    <sqlFile path="005-password-auth.sql" relativeToChangelogFile="true" splitStatements="false"/>
+    <rollback><sqlFile path="005-rollback.sql" relativeToChangelogFile="true" splitStatements="false"/></rollback>
+  </changeSet>
+  <changeSet id="006-category-deadlines" author="team">
+    <sqlFile path="006-category-deadlines.sql" relativeToChangelogFile="true" splitStatements="false"/>
+    <rollback><sqlFile path="006-rollback.sql" relativeToChangelogFile="true" splitStatements="false"/></rollback>
+  </changeSet>
 </databaseChangeLog>
