@@ -1,5 +1,7 @@
 # ITE4120 — Driving Licence Reminder
 
+![Signed-in Overview showing a medical certificate due in 30 days and a link to renewal guidance](screenshots/overview.png)
+
 Team: Rene Korss, Cibele Yuri Kojima De Paula, Dwitama Alfret Wuwung.
 
 ## Run the full app locally
