@@ -12,8 +12,13 @@ compose run --rm liquibase validate
 compose run --rm liquibase update
 compose exec -T postgres sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f /tests/integration.sql'
 compose run --rm liquibase update
-compose exec -T postgres sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 1 / (CASE WHEN count(*) = 3 THEN 1 ELSE 0 END) FROM databasechangelog"'
-compose run --rm liquibase rollback-count --count=3
+compose exec -T postgres sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 1 / (CASE WHEN count(*) = 6 THEN 1 ELSE 0 END) FROM databasechangelog"'
+compose run --rm liquibase rollback-count --count=6
 compose exec -T postgres sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f /tests/after-rollback.sql'
 compose run --rm liquibase update
 compose exec -T postgres sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f /tests/integration.sql'
+# Verify opt-in demo loading twice: reruns must preserve fixture counts and content.
+compose exec -T postgres sh -c 'psql -X -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < database/fixtures/demo.sql
+compose exec -T postgres sh -c 'psql -X -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f /tests/demo.sql'
+compose exec -T postgres sh -c 'psql -X -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < database/fixtures/demo.sql
+compose exec -T postgres sh -c 'psql -X -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f /tests/demo.sql'

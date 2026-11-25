@@ -53,12 +53,12 @@ be interpreted as a valid licence or an unnecessary certificate.
 | `user_account` | `id` PK; `identity_issuer`, `identity_subject` external opaque identity, 255-character bounds pending IdP contract; `created_at`, nullable `deleted_at` for immediate logical deactivation |
 | `web_session` | `id` PK; `user_id` owner; unique `token_hash` exactly 32 bytes for a SHA-256 digest of a high-entropy random bearer token; `created_at`, `expires_at`, nullable `revoked_at`. Hash with a maintained library; secure encrypted cookies and CSRF remain service responsibilities |
 | `status_check` | `id` PK; `user_id`; `requested_at`, nullable `completed_at`; `outcome` pending/successful/failed; safe per-operation `trace_id`; optional `xroad_request_id` (255 bound pending contract); fixed `source_code`; successful `driving_status` valid/at_risk/invalid, safe `reason_code`, `medical_requirement` required/not_required/unknown, nullable `status_changed`; failed safe `error_code`. Result shape prevents success/failure fields mixing |
-| `driving_licence` | `id` PK is a local snapshot identity, **not** a registry document ID; `check_id`, constant successful `check_outcome`; normalized `document_status`; optional `issued_on`, `expires_on`. A check can have zero/multiple licences pending contract cardinality |
-| `licence_category` | Composite PK (`licence_id`, `category_code`); supported Estonian category codes are checked, no extra category metadata invented |
+| `driving_licence` | `id` PK is a local snapshot identity, **not** a registry document ID; `check_id`, constant successful `check_outcome`; normalized `document_status`; optional `issued_on`, `expires_on`; `expiry_kind` distinguishes document and driving-right deadlines. A check can have zero/multiple licences pending contract cardinality |
+| `licence_category` | Composite PK (`licence_id`, `category_code`); supported Estonian category codes are checked; optional `first_issued_on` and `expires_on` preserve the selected source contract dates |
 | `medical_certificate` | `id` PK local snapshot identity; `check_id`, successful `check_outcome`; normalized `certificate_status`; optional `issued_on`, `expires_on`. Zero/multiple certificates permitted; medical applicability lives on the check even if no certificate exists |
 | `reminder_preference` | `user_id` PK/FK; `enabled` defaults false; `updated_at` records preference update |
 | `reminder_interval` | Composite PK (`user_id`, `days_before`); only 90, 30, 7 allowed. Rows are selected intervals, not a global configurable catalogue |
-| `web_push_subscription` | `id` PK; `user_id`; `encrypted_subscription` encrypted endpoint/key bundle; `encryption_key_ref` external vault key/version, 128 bound; `created_at`, nullable `revoked_at`. No raw endpoint/token/auth secret in DB or logs |
+| `web_push_subscription` | `id` PK; `user_id`; `encrypted_subscription` encrypted endpoint/key bundle; `encryption_key_ref` external vault key/version, 128 bound; `created_at`, nullable `revoked_at`; optional `endpoint_hash` supports same-user idempotent registration. No raw endpoint/token/auth secret in DB or logs |
 | `notification` | `id` PK; `user_id`, `check_id`; `document_kind`; exactly one `licence_id` or `medical_certificate_id`; frozen `expires_on`; `days_before`; UTC `scheduled_at`; `channel` in_app/web_push with same-user `subscription_id` required only for web_push; `state` pending/processing/sent/failed/cancelled; processing-only `claimed_until`; sent-only `sent_at`; safe `error_code`; `created_at`. Unique semantic key (`user_id`, `document_kind`, `expires_on`, `days_before`) spans retries and refreshes |
 | `notification_attempt` | `id` PK; `notification_id`; positive `attempt_number` unique per notification; `started_at`, nullable `completed_at`; outcome pending/successful/failed/unknown; safe `error_code` required on failure/unknown; per-attempt `trace_id` |
 | `audit_event` | `id` PK; `occurred_at`; nullable `actor_user_id`, `subject_user_id`; `actor_kind` user/operator/system/anonymous; safe `action_code`, outcome success/failure/unknown; safe `error_code` required on failure; per-operation `trace_id`. Unauthenticated failed logins can have no account references |
@@ -76,6 +76,7 @@ Do not expose raw source errors or assume these examples finalize product wordin
 ```mermaid
 erDiagram
     user_account ||--o{ web_session : owns
+    user_account ||--o| password_credential : authenticates
     user_account ||--o{ status_check : requests
     status_check ||--o{ driving_licence : caches
     driving_licence ||--o{ licence_category : contains
@@ -122,12 +123,15 @@ erDiagram
         uuid check_id FK
         varchar check_outcome FK
         varchar document_status
+        varchar expiry_kind
         date issued_on
         date expires_on
     }
     licence_category {
         uuid licence_id PK,FK
         varchar category_code PK
+        date first_issued_on
+        date expires_on
     }
     medical_certificate {
         uuid id PK
@@ -151,6 +155,7 @@ erDiagram
         uuid user_id FK
         bytea encrypted_subscription
         varchar encryption_key_ref
+        bytea endpoint_hash UK
         timestamptz revoked_at
     }
     notification {
@@ -186,6 +191,20 @@ erDiagram
         varchar action_code
         varchar outcome
         uuid trace_id
+    }
+    password_credential {
+        uuid user_id PK,FK
+        varchar username UK
+        varchar password_hash
+        varchar display_name
+        boolean is_enabled
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    login_throttle {
+        bytea bucket_hash PK
+        smallint attempts
+        timestamptz expires_at
     }
 ```
 
@@ -356,6 +375,15 @@ the grants they need (a dedicated worker role can narrow runtime further).
 
 ## Decisions awaiting contracts or approval
 
+A public ee-test `juhilubaKehtivus` v1 OpenAPI snapshot has now been located and
+used for the separate [upstream HTTP mock](xroad-mock.md). This supplies a concrete
+licence response shape for development; it is not the approved production contract.
+It exposes category-specific dates and a driving-right end date, omits licence details
+when invalid, and supplies no medical-certificate expiry. Agree source selection and
+minimal persistence mappings before implementing the real adapter; add migrations
+for newly required source fields rather than treating existing local cache fields as
+identical to upstream JSON.
+
 | Decision / owner | Consequence and planned resolution |
 | --- | --- |
 | X-Road service owner, approved security-server path, member/service/version identifiers / integration owner | Fixed logical source key is not an invented API endpoint. Obtain authentic test contract and provider provenance; medical data may have a distinct authority, requiring a source/provenance migration |
@@ -383,3 +411,51 @@ data; production handoff requires named approvals and remediation evidence.
 | E-03 | Local Compose has no TLS or independent migration secret; intended only for synthetic development on an unpublished network | Deployment owner must provision encrypted transport/storage, independent credentials, secret rotation, role logins, backup/recovery and key vault before real data |
 | E-04 | Dependency vulnerability scanning requires authenticated Docker Scout in this environment; no clean result can be assumed | Maintainer runs documented gates and resolves unacceptable findings or obtains a written security approval. Image digests pinned; version/licence/purpose documented. See verification report for actual outcomes |
 | E-05 | NFR 6.15 requires full record versioning if integrity classification is S/VS; classification is not agreed, and mutable sessions/preferences/outbox are not a full temporal record model | Controller/security architect must determine classification and approve applicability before release; if S/VS applies, add versioned rows with predecessor/creator/invalidation metadata through migrations rather than claiming snapshots alone comply |
+
+## Frontend API implementation
+
+The React-facing API and its current implementation boundaries are documented in
+[API documentation](api.md), including the story-to-endpoint verification matrix.
+Liquibase 004 adds category dates, the source expiry-kind discriminator and the
+subscription endpoint fingerprint. API code/tests live under `api/`, and the frontend
+Postman collection under `postman/`. Local demo authentication, real provider access,
+notification delivery and production audit/retention are explicitly distinguished
+there; earlier future-service protocol notes remain design guidance, not claims that
+all integration/release requirements have been completed.
+
+## Normal password authentication
+
+Migration 005 replaces account-picker login with credential verification. The optional
+seed tool provisions synthetic users through the same `password_credential` relation
+and Argon2id verifier as any other account; passwords are never inferred from a user
+code. This supports US-01/US-02 and TEHIK security, minimization, audit and stateless
+session requirements. Verification is in `api/tests/test_password_auth.py`.
+
+`password_credential` has user_id PK/FK (cascade on approved user deletion), unique
+canonical username (64 characters), encoded salted password_hash (512 characters),
+minimal display_name (80 characters, Estonian collation), enabled flag and UTC creation/
+update timestamps. The runtime can verify and upgrade hashes but cannot provision or
+activate credentials. Hashes follow account retention and are never returned by APIs
+or routine logs. Operator seeding/rotation is audited; rotation revokes affected sessions.
+
+`login_throttle` exists to protect known and unknown usernames without inventing user
+rows. Its 32-byte HMAC key is the PK, with bounded attempt count and indexed UTC expiry.
+Scopes cover socket sources and canonical usernames; the HMAC secret lives outside the
+DB. No raw IP address or submitted username is stored in this table. Windows default
+to five minutes; expired rows are purged on subsequent login, with an independent
+retention operation needed during idle production periods. Authentication records and
+throttles remain same-schema relations. The updated ERD includes both tables (14 total).
+
+The source fixtures and X-Road identity mapping remain synthetic and separate from
+password authentication. Further source-identity proof is required for live personal
+records; this does not justify weakening local credential verification. See `docs/api.md`
+for seed commands, private Postman environment handling and current deployment limits.
+
+## Category deadline reminders (US-04, US-08 and US-12)
+
+Migration 006 lets a notification reference a category expiry within the same
+verified licence snapshot. The generated document date preserves the original
+document-level foreign key for existing history. Multiple categories sharing a
+date produce one licence reminder per selected interval. The worker verifies
+eligibility again before sending. The external notification still contains only
+the document kind and deadline. Audit events and retention periods are unchanged.

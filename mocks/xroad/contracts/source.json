@@ -1,0 +1,7 @@
+{
+  "source": "https://x-tee.ee/catalogue-data/ee-test/ee-test/GOV/70001490/liiklusregister/juhilubaKehtivus_3.yaml",
+  "retrieved_on": "2026-10-16",
+  "source_sha256": "42f321dccc8fdacd9cc619ea79b592fb96719a40131fc435553e86fb94c40674",
+  "transformation": "Converted YAML to JSON and omitted descriptive prose/examples/tags. Paths, properties, references, types, enums and nullability are preserved.",
+  "scope": "Public ee-test contract snapshot, not production access approval or a medical-certificate API."
+}

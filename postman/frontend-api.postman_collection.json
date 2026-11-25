@@ -1,0 +1,697 @@
+{
+  "info": {
+    "name": "Driving Licence Reminder — Frontend API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Requests grouped by the OpenAPI documentation tags. Select the private seeded environment, send Authentication / 04 Login with seeded credentials once, then use any protected request: the saved collection accessToken is inherited automatically. Running the entire collection follows the numbered 24-step verification workflow across folders. Never export populated passwords or tokens."
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "apiBaseUrl",
+      "value": "http://127.0.0.1:18080",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "checkId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "subscriptionId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Operations",
+      "item": [
+        {
+          "name": "01 Health",
+          "request": {
+            "method": "GET",
+            "url": "{{apiBaseUrl}}/health",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Configuration",
+      "item": [
+        {
+          "name": "02 Frontend configuration",
+          "request": {
+            "method": "GET",
+            "url": "{{apiBaseUrl}}/api/v1/config",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "04 Login with seeded credentials",
+          "request": {
+            "method": "POST",
+            "url": "{{apiBaseUrl}}/api/v1/auth/login",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{validUsername}}\",\n  \"password\": \"{{validPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set(\"accessToken\", pm.response.json().accessToken); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "18 Logout",
+          "request": {
+            "method": "POST",
+            "url": "{{apiBaseUrl}}/api/v1/auth/logout",
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "20 Login unavailable-source demo",
+          "request": {
+            "method": "POST",
+            "url": "{{apiBaseUrl}}/api/v1/auth/login",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{unavailableUsername}}\",\n  \"password\": \"{{unavailablePassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set(\"accessToken\", pm.response.json().accessToken); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "22 Logout unavailable-source demo",
+          "request": {
+            "method": "POST",
+            "url": "{{apiBaseUrl}}/api/v1/auth/logout",
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "23 Invalid password login",
+          "request": {
+            "method": "POST",
+            "url": "{{apiBaseUrl}}/api/v1/auth/login",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"does.not.exist\",\n  \"password\": \"intentionally-incorrect\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "24 Reject unlisted demo code",
+          "request": {
+            "method": "POST",
+            "url": "{{apiBaseUrl}}/api/v1/auth/demo-login",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"personalCode\":\"00000000000\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "The password-only stack hides this route (404). The local web demo rejects unlisted codes (401)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Demo login rejects this request', () => pm.expect(pm.response.code).to.be.oneOf([401, 404]));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "03 Protected profile requires authentication",
+          "request": {
+            "method": "GET",
+            "url": "{{apiBaseUrl}}/api/v1/me",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 My profile",
+          "request": {
+            "method": "GET",
+            "url": "{{apiBaseUrl}}/api/v1/me",
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "19 Revoked session cannot read profile",
+          "request": {
+            "method": "GET",
+            "url": "{{apiBaseUrl}}/api/v1/me",
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Driving data",
+      "item": [
+        {
+          "name": "06 My driving data",
+          "request": {
+            "method": "GET",
+            "url": "{{apiBaseUrl}}/api/v1/me/driving-data",
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "07 Refresh driving data",
+          "request": {
+            "method": "POST",
+            "url": "{{apiBaseUrl}}/api/v1/me/driving-data/refresh",
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Successful check\", () => pm.expect(pm.response.json().check.outcome).to.eql(\"successful\"));",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set(\"checkId\", pm.response.json().check.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "08 Recent status checks",
+          "request": {
+            "method": "GET",
+            "url": "{{apiBaseUrl}}/api/v1/me/status-checks?limit=5",
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "09 Specific status check",
+          "request": {
+            "method": "GET",
+            "url": "{{apiBaseUrl}}/api/v1/me/status-checks/{{checkId}}",
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "21 Failed refresh preserves cached data",
+          "request": {
+            "method": "POST",
+            "url": "{{apiBaseUrl}}/api/v1/me/driving-data/refresh",
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Recorded upstream failure\", () => pm.expect(pm.response.json().check.outcome).to.eql(\"failed\"));",
+                  "pm.test(\"Safe source error\", () => pm.expect(pm.response.json().check.error.code).to.eql(\"XR_UNAVAILABLE\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Reminders",
+      "item": [
+        {
+          "name": "11 Current reminder preferences",
+          "request": {
+            "method": "GET",
+            "url": "{{apiBaseUrl}}/api/v1/me/reminder-preferences",
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "12 Enable or edit reminders",
+          "request": {
+            "method": "PUT",
+            "url": "{{apiBaseUrl}}/api/v1/me/reminder-preferences",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": true,\n  \"intervals\": [\n    90,\n    30,\n    7\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "13 Reject unsupported interval",
+          "request": {
+            "method": "PUT",
+            "url": "{{apiBaseUrl}}/api/v1/me/reminder-preferences",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": true,\n  \"intervals\": [\n    14\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));",
+                  "pm.test(\"Safe validation error\", () => pm.expect(pm.response.json().error.code).to.eql(\"VALIDATION_ERROR\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "14 Disable reminders",
+          "request": {
+            "method": "PUT",
+            "url": "{{apiBaseUrl}}/api/v1/me/reminder-preferences",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": false,\n  \"intervals\": [\n    90,\n    30,\n    7\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "15 Previous sent notifications",
+          "request": {
+            "method": "GET",
+            "url": "{{apiBaseUrl}}/api/v1/me/notifications?limit=20",
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "16 Register synthetic browser subscription",
+          "request": {
+            "method": "POST",
+            "url": "{{apiBaseUrl}}/api/v1/me/push-subscriptions",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"endpoint\": \"https://push.example.test/postman-demo\",\n  \"keys\": {\n    \"p256dh\": \"BA_aa5LDbsy2ROsVmCcx-UydrUar8mIBrXJCe9SVbcfyMakvlXmaBHz8kkIDQJCORZSqHD40GcYV0De4o0YvoYI\",\n    \"auth\": \"bW9jay1hdXRoLXNlY3JldA\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set(\"subscriptionId\", pm.response.json().id); }",
+                  "pm.test(\"Delivery is explicitly unavailable\", () => pm.expect(pm.response.json().deliveryAvailable).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "17 Revoke browser subscription",
+          "request": {
+            "method": "DELETE",
+            "url": "{{apiBaseUrl}}/api/v1/me/push-subscriptions/{{subscriptionId}}",
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Guidance",
+      "item": [
+        {
+          "name": "10 Renewal guidance",
+          "request": {
+            "method": "GET",
+            "url": "{{apiBaseUrl}}/api/v1/me/renewal-guidance",
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Folder layout follows the API docs; Collection Runner follows the numbered workflow.",
+          "// setNextRequest has no effect when sending individual requests manually.",
+          "const workflow = [\"01 Health\", \"02 Frontend configuration\", \"03 Protected profile requires authentication\", \"04 Login with seeded credentials\", \"05 My profile\", \"06 My driving data\", \"07 Refresh driving data\", \"08 Recent status checks\", \"09 Specific status check\", \"10 Renewal guidance\", \"11 Current reminder preferences\", \"12 Enable or edit reminders\", \"13 Reject unsupported interval\", \"14 Disable reminders\", \"15 Previous sent notifications\", \"16 Register synthetic browser subscription\", \"17 Revoke browser subscription\", \"18 Logout\", \"19 Revoked session cannot read profile\", \"20 Login unavailable-source demo\", \"21 Failed refresh preserves cached data\", \"22 Logout unavailable-source demo\", \"23 Invalid password login\", \"24 Reject unlisted demo code\"];",
+          "const index = workflow.indexOf(pm.info.requestName);",
+          "if (index !== -1) {",
+          "  pm.execution.setNextRequest(workflow[index + 1] || null);",
+          "}"
+        ]
+      }
+    }
+  ]
+}

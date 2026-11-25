@@ -1,0 +1,113 @@
+services:
+  api:
+    build:
+      context: ./api
+    image: ite4120-api:local
+    user: '${API_UID:?Run scripts/init-local.sh}:${API_GID:?Run scripts/init-local.sh}'
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment: &api_environment
+      APP_ENV: development
+      DB_HOST: postgres
+      DB_PORT: '5432'
+      DB_NAME: ${POSTGRES_DB:-licence_reminder}
+      DB_USER: reminder_api
+      DB_PASSWORD_FILE: /run/secrets/api_password
+      PUSH_KEY_FILE: /run/secrets/push_key
+      AUTH_KEY_FILE: /run/secrets/auth_key
+      LOGIN_MAX_ATTEMPTS: ${LOGIN_MAX_ATTEMPTS:-5}
+      LOGIN_SOURCE_MAX_ATTEMPTS: ${LOGIN_SOURCE_MAX_ATTEMPTS:-30}
+      LOGIN_WINDOW_SECONDS: ${LOGIN_WINDOW_SECONDS:-300}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000}
+      XROAD_BASE_URL: http://xroad-mock:8081
+      XROAD_PATH: /r1/ee-test/GOV/70001490/liiklusregister/juhilubaKehtivus/v1
+      XROAD_CLIENT: ee-test/COM/00000000/licence-reminder-demo
+      XROAD_TIMEOUT_SECONDS: ${XROAD_TIMEOUT_SECONDS:-3}
+      SESSION_SECONDS: ${SESSION_SECONDS:-1800}
+      SESSION_WARNING_SECONDS: ${SESSION_WARNING_SECONDS:-120}
+      RISK_DAYS: ${RISK_DAYS:-90}
+      STALE_SECONDS: ${STALE_SECONDS:-86400}
+      PUSH_ALLOWED_HOSTS: ${PUSH_ALLOWED_HOSTS:-push.example.test}
+      OFFICIAL_RENEWAL_URL: ${OFFICIAL_RENEWAL_URL:-https://eteenindus.mnt.ee/juht.jsf?lang=en}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      PYTHONDONTWRITEBYTECODE: '1'
+    secrets: [api_password, push_key, auth_key]
+    depends_on:
+      api-db-init:
+        condition: service_completed_successfully
+      xroad-mock:
+        condition: service_healthy
+    ports:
+      - '127.0.0.1:${API_HOST_PORT:-18080}:8000'
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 5s
+      timeout: 4s
+      retries: 12
+  api-db-init:
+    image: ${POSTGRES_IMAGE:-postgres:17.11-bookworm@sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826}
+    user: '${API_UID:?Run scripts/init-local.sh}:${API_GID:?Run scripts/init-local.sh}'
+    environment:
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER:-database_owner}
+      PGDATABASE: ${POSTGRES_DB:-licence_reminder}
+    secrets: [postgres_password, api_password]
+    volumes:
+      - ./database/provision-api.sql:/provision-api.sql:ro
+    entrypoint: [/bin/sh, -c]
+    command:
+      - >-
+        export PGPASSWORD="$$(cat /run/secrets/postgres_password)" &&
+        export API_DATABASE_PASSWORD="$$(cat /run/secrets/api_password)" &&
+        exec psql -X -v ON_ERROR_STOP=1 -f /provision-api.sql
+    depends_on:
+      liquibase:
+        condition: service_completed_successfully
+  api-seed:
+    image: ite4120-api:local
+    profiles: [tools]
+    user: '${API_UID:?Run scripts/init-local.sh}:${API_GID:?Run scripts/init-local.sh}'
+    environment:
+      <<: *api_environment
+      DB_USER: ${POSTGRES_USER:-database_owner}
+      DB_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets: [postgres_password, push_key, auth_key]
+    volumes:
+      - ./.secrets:/seed-output
+    command: [python, -m, licence_api.seed, --output, /seed-output/frontend-api.postman_environment.json]
+  api-test:
+    image: python:3.13-slim-bookworm@sha256:a1165e272e578941b84abc79e4ab38a0305cd12803a5c4247979ac7655f4d641
+    profiles: [test]
+    user: '${API_UID:?Run scripts/init-local.sh}:${API_GID:?Run scripts/init-local.sh}'
+    environment:
+      <<: *api_environment
+      APP_ENV: test
+      PYTHONPATH: /workspace/api/src
+      TEST_DATABASE_OWNER: ${POSTGRES_USER:-database_owner}
+      TEST_DATABASE_OWNER_PASSWORD_FILE: /run/secrets/postgres_password
+      XROAD_TIMEOUT_SECONDS: '0.2'
+      PYTHONDONTWRITEBYTECODE: '1'
+      COVERAGE_FILE: /tmp/api-coverage
+      RUFF_CACHE_DIR: /tmp/api-ruff-cache
+    secrets: [api_password, push_key, auth_key, postgres_password]
+    volumes:
+      - ./api:/workspace/api:ro
+      - ./postman:/workspace/postman:ro
+    working_dir: /workspace/api
+    command:
+      - /bin/sh
+      - -c
+      - >-
+        python -m venv /tmp/api-venv &&
+        /tmp/api-venv/bin/pip install --disable-pip-version-check --quiet --require-hashes -r requirements-dev.lock &&
+        /tmp/api-venv/bin/ruff check src tests &&
+        /tmp/api-venv/bin/ruff format --check src tests &&
+        /tmp/api-venv/bin/pytest -q -p no:cacheprovider --cov=licence_api --cov-report=term-missing
+secrets:
+  api_password:
+    file: ./.secrets/api_password
+  push_key:
+    file: ./.secrets/push_key
+  auth_key:
+    file: ./.secrets/auth_key

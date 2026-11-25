@@ -1,0 +1,7 @@
+services:
+  xroad-mock:
+    ports: !reset []
+    environment:
+      MOCK_DELAY_SECONDS: '0.5'
+  api:
+    ports: !reset []

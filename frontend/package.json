@@ -1,0 +1,30 @@
+{
+  "name": "driving-licence-reminder",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "lint": "tsc --noEmit",
+    "test": "playwright test",
+    "format": "prettier --write src tests *.ts public/sw.js",
+    "format:check": "prettier --check src tests *.ts public/sw.js",
+    "sbom": "npm sbom --sbom-format cyclonedx",
+    "test:unit": "playwright test domain.spec.ts",
+    "test:e2e": "playwright test web.spec.ts"
+  },
+  "dependencies": {
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.65.1",
+    "@types/react": "^19.3.2",
+    "@types/react-dom": "^19.3.0",
+    "prettier": "^3.10.1",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.8"
+  }
+}

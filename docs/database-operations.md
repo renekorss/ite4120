@@ -29,7 +29,7 @@ Run these gates before packaging, in order. Tests use fabricated data only.
 | Resilience / load | Migration reapply and rollback are exercised now; application retry, external outage and measured sprint-end load gates await a running service and agreed targets |
 
 The test script uses a fresh generated Compose project and tmpfs for PostgreSQL data.
-It validates, migrates, tests, re-runs update (no new changesets), rolls back all three
+It validates, migrates, tests, re-runs update (no new changesets), rolls back all six
 changesets, reapplies and tests again. Cleanup stops only that generated project;
 no volume-deletion command is used. The ordinary local project's data persists.
 The tests also run inside the PostgreSQL container and need no Python dependencies.
@@ -56,8 +56,8 @@ an authorised SQL operation and update the mounted secret together.
 | `TZ`, `PGTZ`, PostgreSQL `timezone` | UTC, fixed in local Compose |
 
 There are no committed connection credentials, personal data, environment-specific
-external addresses or runtime login passwords. No package-manager dependencies or
-lockfile are needed; the two container images are pinned by immutable digest.
+external addresses or runtime login passwords. The database tools use digest-pinned images. The frontend API adds Python dependencies
+with `api/uv.lock` and hash-locked requirements; see `docs/api.md`.
 PostgreSQL uses its PostgreSQL licence; Liquibase 4.33.0 Community uses Apache-2.0
 and includes the JDBC driver. Liquibase 5 changes licensing and driver packaging;
 review a future upgrade explicitly. Scout inventories transitive OS/JVM/JDBC packages
@@ -92,9 +92,37 @@ errors to users. Liquibase container logs are deployment diagnostics, not ECS au
 records. Application JSON/ECS event emission awaits the backend.
 
 Rollback SQL exists for clean development databases and is automatically tested.
-`docker compose run --rm liquibase rollback-count --count=3` **destroys the entire
+`docker compose run --rm liquibase rollback-count --count=6` **destroys the entire
 application schema**; use only in an explicitly disposable empty environment.
 For populated environments, prefer a forward corrective migration or restore a
 verified backup under the deployment owner's procedure. Never clear checksums or
 force-release a lock unless an authorised operator has verified that no migration
 is running. No production backup schedule, deletion job or reminder worker is installed.
+
+## Optional demo data
+
+Run `./scripts/seed-demo.sh` after migrations to load synthetic driving scenarios into
+the local database for TablePlus and API development. See [scenario details and X-Road
+limitations](demo-data.md). Repeated loading preserves existing records. Fixtures are
+not Liquibase changesets and are not loaded on application startup.
+
+## Local upstream HTTP mock
+
+For a request/response mock of the published licence service, see
+[X-Road mock commands and contract](xroad-mock.md). It runs independently of the
+optional SQL demo dataset and does not write to PostgreSQL. Image scans and SBOM
+commands inventory the optional Python mock image as well as PostgreSQL/Liquibase.
+
+## Frontend API
+
+See [API development and operations](api.md) for the canonical API formatting, unit,
+integration, build, dependency scan and React/Postman commands. The API stack orders
+migrations and local role provisioning before startup. Database-only commands above
+remain valid for schema maintenance. Full-stack shutdown uses all three Compose files,
+as shown in README, to stop the API and mock as well as PostgreSQL without deleting data.
+
+Migration 006 links a reminder to either a verified licence-wide deadline or a
+category deadline on the same snapshot. Existing notices keep their original
+expiry and history. Rolling back 006 with category-only notices fails the original
+foreign key check. Keep the migration and roll back application code, or restore
+a coordinated pre-migration backup according to the operator recovery plan.

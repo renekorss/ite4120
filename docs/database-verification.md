@@ -63,3 +63,70 @@ host ports so the test database can run alongside the local database. Resolved C
 configuration confirmed no test port mapping. The 4 repository checks, 45 database
 assertions before and after rollback/reapplication, migration idempotency, and
 `git diff --check` passed again. Packaging and checksum verification were repeated.
+
+## Synthetic demo data — 2026-10-16
+
+Added optional fixtures for seven driving scenarios, documented in `docs/demo-data.md`.
+`./scripts/test-database.sh` passed the existing migration/rollback assertions and
+12 demo assertions after both initial fixture loading and repeat loading. The repeat
+load skipped insertion as intended. The 4 repository checks, `git diff --check`, source
+packaging and checksum verification passed. `./scripts/seed-demo.sh` loaded the fixtures
+into the local database; the same 12 demo assertions passed there. No schema migration,
+real registry call, usable authentication secret or actual notification delivery was added.
+
+## Upstream HTTP mock — 2026-10-16
+
+The public ee-test `juhilubaKehtivus` v1 contract was retrieved and a structural
+snapshot with source checksum recorded under `mocks/xroad/contracts/`. The optional
+mock is independent of SQL fixture rows. All 15 contract/HTTP checks passed in the
+pinned Python container, including injected timeout recovery; 4 repository checks
+and whitespace checks passed. The initial host HTTP checks were blocked by sandbox
+socket permissions, so the full suite ran successfully in Docker. The mock's Compose
+configuration validated, its health check passed, and the documented curl request
+returned synthetic JSON on localhost port 18081. Port 8081 was occupied by another
+project and was left unchanged. SPDX generation including Python succeeded;
+Docker Scout vulnerability scanning still requires authentication. Source packaging
+and SHA-256 verification passed. No real X-Road request or database migration occurred.
+See `docs/xroad-mock.md` for contract limitations and canonical run/test commands.
+
+## React-facing API — 2026-11-12
+
+Added the FastAPI frontend contract, restricted runtime login, migration 004, isolated
+API integration harness and separate 23-request frontend Postman collection. The API
+suite passed 47 tests with 95% statement coverage using real PostgreSQL and HTTP mock
+collaboration. Tests cover source validation, authorization/ownership, session expiry/
+revocation, reminder state, old medical-data provenance, encrypted subscriptions,
+CORS, safe errors/logs, date progression and recovery after idle DB connections die.
+All four migrations passed fresh install, repeated update and rollback/reapplication;
+existing SQL/demo checks passed. Formatting/static analysis passed. Runtime dependency
+pip-audit found no known vulnerabilities and generated a CycloneDX inventory.
+
+The image built successfully and the local startup chain ran migrations and runtime
+role provisioning before API health passed. All 23 frontend collection requests passed
+over HTTP against the built service; the OpenAPI contract was exported to `api/openapi.json`.
+This smoke checker does not execute Postman's JavaScript engine or a React browser.
+SPDX inventory generation succeeded; container vulnerability scanning still requires
+Docker Scout authentication. Reproducible source packaging/checksum verification is
+recorded alongside the artifact. No real identity provider, live X-tee interface,
+notification delivery, browser accessibility/E2E or production load gate is claimed.
+See `docs/api.md` for full commands, traceability, source limitations and release blockers.
+
+## Verified password authentication — 2026-11-12
+
+Replaced the picker with normal username/password verification. Public account listing
+and `demoUser` inputs are removed; no account is created by login. Argon2id credential
+storage, automatic hash upgrades, shared account/source throttling, generic failures
+and disabled-account checks are exercised by 67 API tests at 96% statement coverage.
+All five migrations passed installation, idempotency and rollback/reapplication;
+migration 005 revokes and audits earlier picker sessions without reactivating them
+on rollback. Runtime dependency scanning including Argon2 found no known vulnerabilities.
+
+The rebuilt image started successfully. The optional operator seed was invoked
+explicitly and generated owner-only private Postman credentials. All 23 frontend
+collection requests passed over HTTP using actual username/password verification.
+The published OpenAPI requires username/password and has no demo-user-list route.
+Seed idempotence, password rotation/revocation, private output permissions and absence
+of passwords in error responses/logs are tested. Inventory/package/checksum gates were
+refreshed. No private Postman environment or passwords are included in source control
+or the package. The X-Road data remains synthetic; live source identity proof and
+production deployment controls remain separate from credential verification.
